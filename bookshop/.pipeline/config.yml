@@ -32,11 +32,11 @@ stages:
 #      - alias: 'mySystemAlias'
 #        credentialId: 'mySystemCredentialsId'
 
-#  Release:
-#    cfTargets:
-#      - org: 'myOrg'
-#        space: 'mySpace'
-#        apiEndpoint: 'https://'
-#        appName: 'myAppName'
-#        manifest: 'manifest.yml'
-#        credentialsId: 'myDeploymentCredentialsId'
+  Release:
+    cfTargets:
+      - org: '88cc3ed8trial'
+        space: 'dev'
+        apiEndpoint: 'https://api.cf.us10-001.hana.ondemand.com'
+        appName: 'bookshop'
+        manifest: 'manifest.yml'
+        credentialsId: 'deploy-to-cf'
