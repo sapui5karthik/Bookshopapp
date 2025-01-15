@@ -9,3 +9,9 @@ entity Department {
     deptname : String(40);
     
 }
+
+entity Colleges {
+    key collegeid : String(10);
+    collegename : String(300);
+    collegelocation : String(400);
+}
