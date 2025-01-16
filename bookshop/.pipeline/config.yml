@@ -1,42 +1,62 @@
-###
-# This file configures the project "Piper" pipeline of your project.
-# For a reference of the configuration concept and available options, please have a look into its documentation.
-#
-# The documentation for the most recent pipeline version can always be found at:
-#    https://www.project-piper.io/
-#
-# This is a YAML-file. YAML is an indentation-sensitive file format. Please make sure to properly indent changes to it.
-###
-
-
-
-### General project setup
+# Project configuration
 general:
-  inferBuildTool: true
+  buildTool: "mta"                                                                              # "mta", "npm", or "maven"
 
-### Step-specific configuration
-steps:
-  mavenExecute:
-    dockerImage: devxci/mbtci:1.0.14
+service:
+  buildToolVersion: "MBTJ11N14"                                                                 # depends on buildTool value
+  stages:
+    Acceptance:                                                                                 # optional, only relevant if you enable Acceptance stage
+      cfCredentialsId: "cf"
+    Release:                                                                                    # optional, only relevant if you enable Release stage with Cloud Foundry deployment activated
+      cfCredentialsId: "cf"
+  cloudConnectors:                                                                              # optional, only relevant if you enable Compliance stage with "SonarQube" mode           
+    sonarExecuteScan: 
+      credentialId: "<name of your cloud connector credential>"
 
-  artifactPrepareVersion:
-    versioningType: cloud_noTag
-
-### Stage-specific configuration
+# Stages configuration
 stages:
-  'Confirm':
-    manualConfirmation: false
+  Build:
+    mavenExecuteStaticCodeChecks: false                                                         # true, if you want to execute static code checks to verify the syntax of your Java code
+    npmExecuteLint: false                                                                       # true, if you want to run a lint check that verifies the syntax of your JavaScript code
 
-#  Integration:
-#    credentials:
-#      - alias: 'mySystemAlias'
-#        credentialId: 'mySystemCredentialsId'
+  Additional Unit Tests:
+    karmaExecuteTests: false                                                                    # true, if you want to execute the Karma Test Runner (default: false)
+    npmExecuteScripts: false                                                                    # true, if you want to execute test scripts that are defined in step npmExecuteScripts
 
+  Acceptance:
+    cloudFoundryDeploy: true                                                                    # true, if you want to deploy to Cloud Foundry test space (default: false)
+    cfApiEndpoint: "https://api.cf.us10-001.hana.ondemand.com/" 
+    cfOrg: "88cc3ed8trial"
+    cfSpace: "dev"
+    deployType: "standard"
+    npmExecuteEndToEndTests: true                                                               # true, if you want to execute end-to-end acceptance tests using WebdriverIO (default: false)
+
+  Compliance:
+    sonarExecuteScan: false                                                                     # true, if you want to integrate continuous inspection of code quality (default: false). If you set this parameter to true,
+                                                                                                # the sonarExecuteScan step is mandatory
+     
   Release:
-    cfTargets:
-      - org: '88cc3ed8trial'
-        space: 'dev'
-        apiEndpoint: 'https://api.cf.us10-001.hana.ondemand.com'
-        appName: 'bookshop'
-        manifest: 'manifest.yml'
-        credentialsId: 'deploy-to-cf'
+    cloudFoundryDeploy: true                                                                    # true, if you want to deploy to Cloud Foundry. If you set this parameter to true, the CloudFoundryDeploy step is mandatory
+    cfApiEndpoint: "https://api.cf.us10-001.hana.ondemand.com/"                     # for example, "https://api.cf.eu10.hana.ondemand.com"
+    cfOrg: "88cc3ed8trial"
+    cfSpace: "dev"                                               # the Cloud Foundry space, to which you want to deploy your application
+    cfAppName: "bookshop"
+    deployType: "standard"
+    tmsUpload: true                                                                             # true, if you want to upload your artifact to SAP Cloud Transport Management. If you set this parameter to true, the tmsUpload
+                                                                                                # step is mandatory
+
+# Steps configuration
+steps:
+# Init stage step 
+  artifactPrepareVersion:
+    versioningType: 
+      "cloud_noTag"                                                                             # or "cloud", if you want your pipeline to write Git tags. In this case, you need to add the gitHttpsCredentialsId parameter
+                                                                                                # or "library" for maven. In this case, the version needs to be set in the pom.xml file
+# Build stage step 
+  npmExecuteLint:
+    failOnError: false                                                                          # true, if you want your pipeline to fail, if the lint check reveals any errors
+
+# Test stage step 
+  npmExecuteScripts:                                                                            # only relevant, if you set the npmExecuteScripts parameter in the Additional Unit Tests stage to true
+    runScripts:
+        - "test"                                                                                # list of script names in your package.json file to be executed 
